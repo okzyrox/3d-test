@@ -202,6 +202,10 @@ function love.keypressed(key)
         CurrentCamera = SecondCamera
     elseif key == "6" then
         CurrentCamera = MainCamera
+    elseif love.keyboard.isDown("lctrl") and key == "s" then
+        MainGame:save()
+    elseif love.keyboard.isDown("lctrl") and key == "l" then
+        MainGame:load()
     end
 end
 

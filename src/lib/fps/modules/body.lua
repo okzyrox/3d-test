@@ -73,7 +73,7 @@ function body.new()
 			0,0,0
 		},
 		transform              = { --Column major
-			1,0,0,0,
+			1,0,0,0, -- Split transform into scale, rotation, etc?
 			0,1,0,0,
 			0,0,1,0,
 			0,0,0,1

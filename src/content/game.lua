@@ -1,6 +1,7 @@
 local fps = require "lib.fps"
 local lmath = require "lib.lmath"
 local Class = require "lib.classic"
+local Json = require "lib.json"
 
 local Meshes = require "content.Meshes"
 
@@ -162,6 +163,56 @@ function Game:draw(camera, camera_projection)
         0, self._buffer[1]:getHeight(),
         0, 1, -1
     )
+end
+
+function Game:load()
+    local json_data = love.filesystem.read("save.json")
+    local save_data = Json.decode(json_data)
+    self._objects = {}
+    self._world:clear_bodies()
+    for _, data in ipairs(save_data) do
+        self:new_object(
+            {
+                {
+                    Meshes.cube,
+                    lmath.vector3.new(data.colliders[1].size.x, data.colliders[1].size.y, data.colliders[1].size.z),
+                    lmath.matrix4.new()
+                }
+            }, 
+            lmath.matrix4.new():set_position(data.pos.x, data.pos.y, data.pos.z), 
+            lmath.color3.new(data.col.r, data.col.g, data.col.b), 
+            data.is_static
+        )
+    end
+    collectgarbage()
+end
+function Game:save()
+    local save_data = {}
+    for _, object in pairs(self._objects) do
+        local pos_x, pos_y, pos_z = object.body:get_position()
+        local col_r, col_g, col_b = object.color:unpack()
+        local data ={
+            ["pos"] = {["x"] = pos_x, ["y"] = pos_y, ["z"] = pos_z},
+            ["col"] = {["r"] = col_r, ["g"] = col_g, ["b"] = col_b},
+            ["is_static"] = object.body:get_static(),
+            ["colliders"] = {}
+        }
+        local i = 1
+        for _, collider in ipairs(object.body.colliders) do
+            data["colliders"][i] = {
+                ["size"] = {
+                    ["x"] = collider.size[1],
+                    ["y"] = collider.size[2],
+                    ["z"] = collider.size[3],
+                }
+            }
+            i = i + 1
+        end
+        table.insert(save_data, data)
+    end
+    local json_data = Json.encode(save_data)
+    love.filesystem.write("save.json", json_data)
+    collectgarbage()
 end
 
 return Game

@@ -80,6 +80,14 @@ function world.remove_body(world_,body_)
 	--Todo: remove from spatial partition
 end
 
+function world.get_bodies(world_)
+	return world_.bodies
+end
+
+function world.clear_bodies(world_)
+	world_.bodies={}
+end
+
 function world.add_solver(world_,solver_)
 	world_.solvers[#world_.solvers+1]=solver_
 end
