@@ -13,65 +13,6 @@ local MainGame = Game:new()
 local world = MainGame:get_world()
 local MainCamera = Camera:new()
 
--- Cam
---[[
-local projection=lmath.matrix4.new():set_perspective(
-	75,
-	love.graphics.getWidth()/love.graphics.getHeight(),
-	0.1,1000
-)
-
-local camera = lmath.matrix4.new():set_position(0,5,0)
-
-local camera_step
-local camera_input
-
-do
-	local key_map={
-		w=lmath.vector3.new(0,0,-1),
-		s=lmath.vector3.new(0,0,1),
-		a=lmath.vector3.new(-1,0,0),
-		d=lmath.vector3.new(1,0,0),
-		e=lmath.vector3.new(0,1,0),
-		q=lmath.vector3.new(0,-1,0)
-	}
-	
-	local move_dir=lmath.vector3.new()
-	local look_angle=lmath.vector2.new()
-	
-	local view=lmath.matrix4.new()
-	:set(camera:unpack())
-	
-	camera_step=function(dt)
-		move_dir:set()
-		for key,vector in pairs(key_map) do
-			if love.keyboard.isDown(key) then
-				move_dir:add(vector)
-			end
-		end
-		move_dir=move_dir
-		:normalize()
-		:multiply(dt*(love.keyboard.isDown("lshift") and 40 or 20))
-		if move_dir:get_magnitude()~=0 then
-			view:transform(move_dir:unpack())
-		end
-		camera:lerp(view,dt/0.1)
-	end
-	
-	camera_input=function(dx,dy)
-		if love.mouse.isDown(1,2) then
-			look_angle.x=lmath.clamp(
-				look_angle.x-math.rad(dy*0.4),
-				math.rad(-89),math.rad(89)
-			)
-			look_angle.y=look_angle.y-math.rad(dx*0.4)
-			view:set_euler(0,look_angle.y,0)
-			:rotate_euler(look_angle.x,0,0)
-		end
-	end
-end
-]]
-
 function love.load()
     MainGame:new_object(
         {
