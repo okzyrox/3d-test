@@ -4,8 +4,9 @@ local Class = require "lib.classic"
 
 local Camera = Class:extend()
 
-function Camera:new()
+function Camera:new(id)
     local cam = lmath.matrix4.new()
+    self.id = id
     self.camera = cam
     self.keymap = {
         w = lmath.vector3.new(0, 0, -1),

@@ -95,10 +95,6 @@ function Mesh:from_file(filepath)
     end
 
     print("Mesh loaded: " .. filepath)
-    print(self.drawable)
-    print(self.data)
-    print(self.data.vertices)
-    print(self.shape)
 
     return self
 end

@@ -11,7 +11,10 @@ local Camera = require "content.Camera"
 
 local MainGame = Game:new()
 local world = MainGame:get_world()
-local MainCamera = Camera:new()
+local MainCamera = Camera("first_cam")
+local SecondCamera = Camera("second_cam")
+
+local CurrentCamera = MainCamera
 
 function love.load()
     MainGame:new_object(
@@ -78,17 +81,18 @@ end
 local static_creation = false
 
 function love.draw(dt)
-    MainGame:draw(Camera.camera, Camera.projection)
+    MainGame:draw(CurrentCamera.camera, CurrentCamera.projection)
 
     love.graphics.print(
         (
-            "FPS: %d\n" ..
-            "Mem: %0.2f mb\n" ..
-            "Bodies: %d\n" ..
-            "Wireframe: %s\n" ..
-            "Show Bounding Box: %s\n" ..
-            "Physics: %s\n" ..
-            "StaticCreation: %s "
+            "FPS: %d \n" ..
+            "Mem: %0.2f mb \n" ..
+            "Bodies: %d \n" ..
+            "Wireframe: %s \n" ..
+            "Show Bounding Box: %s \n" ..
+            "Physics: %s \n" ..
+            "StaticCreation: %s \n " ..
+            "CurrentCamera: %s"
         ):format(
             love.timer.getFPS(),
             collectgarbage("count") / 1024,
@@ -96,23 +100,21 @@ function love.draw(dt)
             tostring(MainGame.render_wireframe),
             tostring(MainGame.render_bounding_box),
             MainGame.step_physics and "Step" or "Realtime",
-            tostring(static_creation)
+            tostring(static_creation),
+            CurrentCamera.id
         ),
         5, 5
     )
 end
 
-local tick = love.timer.getTime()
-local scale = 1
-
 local pull_origin = lmath.matrix4.new()
 local pull_force  = 50
 
 function love.update(dt)
-    Camera:step(dt)
+    CurrentCamera:step(dt)
 
     pull_origin
-        :set(Camera.camera:unpack())
+        :set(CurrentCamera.camera:unpack())
         :transform(0, 0, -15)
 
     local pull_x, pull_y, pull_z = pull_origin:get_position()
@@ -149,12 +151,12 @@ function love.update(dt)
 end
 
 function love.mousemoved(x, y, dx, dy)
-    Camera:input(dx, dy)
+    CurrentCamera:input(dx, dy)
 end
 
 function love.keypressed(key)
     if key == "f" then
-        local lx, ly, lz = Camera:get_look()
+        local lx, ly, lz = CurrentCamera:get_look()
 
         local mesh = math.random(1, 4)
 
@@ -169,7 +171,7 @@ function love.keypressed(key)
                     lmath.matrix4.new()
                 }
             },
-            lmath.matrix4.new():set(Camera.camera:unpack()):transform(0, 0, -6),
+            lmath.matrix4.new():set(CurrentCamera.camera:unpack()):transform(0, 0, -6),
             lmath.color3.new(
                 math.random(0, 255) / 255,
                 math.random(0, 255) / 255,
@@ -196,6 +198,10 @@ function love.keypressed(key)
         MainGame:clear_objects(false)
     elseif key == "p" then
         MainGame:clear_objects(true)
+    elseif key == "5" then
+        CurrentCamera = SecondCamera
+    elseif key == "6" then
+        CurrentCamera = MainCamera
     end
 end
 
