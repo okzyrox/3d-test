@@ -1,19 +1,79 @@
 local lmath = require "lib.lmath"
 local wavefront = require "lib.wavefront"
 local fps = require "lib.fps"
-local Meshes = require "content.Meshes"
 -- Game
 
-local Game = require "content.game"
+local Game = require "content.Game"
+local Meshes = require "content.Meshes"
+local Camera = require "content.Camera"
 -------------------------------------------------------------------------------
 -- Start
 
-local game = Game:new()
-local world = game:get_world()
+local MainGame = Game:new()
+local world = MainGame:get_world()
+local MainCamera = Camera:new()
 
+-- Cam
+--[[
+local projection=lmath.matrix4.new():set_perspective(
+	75,
+	love.graphics.getWidth()/love.graphics.getHeight(),
+	0.1,1000
+)
+
+local camera = lmath.matrix4.new():set_position(0,5,0)
+
+local camera_step
+local camera_input
+
+do
+	local key_map={
+		w=lmath.vector3.new(0,0,-1),
+		s=lmath.vector3.new(0,0,1),
+		a=lmath.vector3.new(-1,0,0),
+		d=lmath.vector3.new(1,0,0),
+		e=lmath.vector3.new(0,1,0),
+		q=lmath.vector3.new(0,-1,0)
+	}
+	
+	local move_dir=lmath.vector3.new()
+	local look_angle=lmath.vector2.new()
+	
+	local view=lmath.matrix4.new()
+	:set(camera:unpack())
+	
+	camera_step=function(dt)
+		move_dir:set()
+		for key,vector in pairs(key_map) do
+			if love.keyboard.isDown(key) then
+				move_dir:add(vector)
+			end
+		end
+		move_dir=move_dir
+		:normalize()
+		:multiply(dt*(love.keyboard.isDown("lshift") and 40 or 20))
+		if move_dir:get_magnitude()~=0 then
+			view:transform(move_dir:unpack())
+		end
+		camera:lerp(view,dt/0.1)
+	end
+	
+	camera_input=function(dx,dy)
+		if love.mouse.isDown(1,2) then
+			look_angle.x=lmath.clamp(
+				look_angle.x-math.rad(dy*0.4),
+				math.rad(-89),math.rad(89)
+			)
+			look_angle.y=look_angle.y-math.rad(dx*0.4)
+			view:set_euler(0,look_angle.y,0)
+			:rotate_euler(look_angle.x,0,0)
+		end
+	end
+end
+]]
 
 function love.load()
-    game:new_object(
+    MainGame:new_object(
         {
             {
                 Meshes.cube,
@@ -25,7 +85,7 @@ function love.load()
         lmath.color3.new(1, 1, 1)
     )
 
-    game:new_object(
+    MainGame:new_object(
         {
             {
                 Meshes.cube,
@@ -37,7 +97,7 @@ function love.load()
         lmath.color3.new(1, 1, 1)
     )
 
-    game:new_object(
+    MainGame:new_object(
         {
             {
                 Meshes.cube,
@@ -49,7 +109,7 @@ function love.load()
         lmath.color3.new(1, 1, 1)
     )
 
-    game:new_object(
+    MainGame:new_object(
         {
             {
                 Meshes.cube,
@@ -61,7 +121,7 @@ function love.load()
         lmath.color3.new(1, 1, 1)
     )
 
-    game:new_object(
+    MainGame:new_object(
         {
             {
                 Meshes.cube,
@@ -77,7 +137,7 @@ end
 local static_creation = false
 
 function love.draw(dt)
-    game:draw()
+    MainGame:draw(Camera.camera, Camera.projection)
 
     love.graphics.print(
         (
@@ -92,9 +152,9 @@ function love.draw(dt)
             love.timer.getFPS(),
             collectgarbage("count") / 1024,
             #world.bodies,
-            tostring(game.render_wireframe),
-            tostring(game.render_bounding_box),
-            game.step_physics and "Step" or "Realtime",
+            tostring(MainGame.render_wireframe),
+            tostring(MainGame.render_bounding_box),
+            MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation)
         ),
         5, 5
@@ -108,16 +168,16 @@ local pull_origin = lmath.matrix4.new()
 local pull_force  = 50
 
 function love.update(dt)
-    game:step_camera(dt)
+    Camera:step(dt)
 
     pull_origin
-        :set(game:get_true_camera():unpack())
+        :set(Camera.camera:unpack())
         :transform(0, 0, -15)
 
     local pull_x, pull_y, pull_z = pull_origin:get_position()
 
     if love.keyboard.isDown("r") then
-        local objects = game:get_objects()
+        local objects = MainGame:get_objects()
         for _, object in pairs(objects) do
             if not object.body:get_static() then
                 local x, y, z = object.body:get_position()
@@ -142,22 +202,22 @@ function love.update(dt)
         end
     end
 
-    if not game.step_physics then
+    if not MainGame.step_physics then
         world:step(math.min(dt, 1 / 60))
     end
 end
 
 function love.mousemoved(x, y, dx, dy)
-    game:input_camera(dx, dy)
+    Camera:input(dx, dy)
 end
 
 function love.keypressed(key)
     if key == "f" then
-        local lx, ly, lz = game:camera_get_look()
+        local lx, ly, lz = Camera:get_look()
 
         local mesh = math.random(1, 4)
 
-        local bullet = game:new_object(
+        local bullet = MainGame:new_object(
             {
                 {
                     (mesh == 1 and Meshes.cube) or
@@ -168,7 +228,7 @@ function love.keypressed(key)
                     lmath.matrix4.new()
                 }
             },
-            lmath.matrix4.new():set(game:get_true_camera():unpack()):transform(0, 0, -6),
+            lmath.matrix4.new():set(Camera.camera:unpack()):transform(0, 0, -6),
             lmath.color3.new(
                 math.random(0, 255) / 255,
                 math.random(0, 255) / 255,
@@ -182,19 +242,19 @@ function love.keypressed(key)
             lx * 20, ly * 20, lz * 20
         )
     elseif key == "1" then
-        game.render_wireframe = not game.render_wireframe
+        MainGame.render_wireframe = not MainGame.render_wireframe
     elseif key == "2" then
-        game.render_bounding_box = not game.render_bounding_box
+        MainGame.render_bounding_box = not MainGame.render_bounding_box
     elseif key == "3" then
-        game.step_physics = not game.step_physics
-    elseif key == "t" and game.step_physics then
+        MainGame.step_physics = not MainGame.step_physics
+    elseif key == "t" and MainGame.step_physics then
         world:step(1 / 60)
     elseif key == "4" then
         static_creation = not static_creation
     elseif key == "z" then
-        game:clear_objects(false)
+        MainGame:clear_objects(false)
     elseif key == "p" then
-        game:clear_objects(true)
+        MainGame:clear_objects(true)
     end
 end
 

@@ -2,7 +2,6 @@ local fps = require "lib.fps"
 local lmath = require "lib.lmath"
 local Class = require "lib.classic"
 
-local Camera = require "content.camera"
 local Meshes = require "content.Meshes"
 
 local Game = Class:extend()
@@ -19,7 +18,7 @@ function Game:new()
     self.step_physics = false
 
     self._buffer = {
-        Canvas = love.graphics.newCanvas(
+        love.graphics.newCanvas(
             love.graphics.getWidth(),
             love.graphics.getHeight(),
             { format = "normal" }
@@ -31,7 +30,6 @@ function Game:new()
     self._world:set_gravity(0, -50, 0)
     self._objects = {}
     self._mat4 = lmath.matrix4.new()
-    self._camera = Camera:new()
     return self
 end
 
@@ -49,22 +47,6 @@ end
 
 function Game:get_object_count()
     return #self._objects
-end
-
-function Game:get_true_camera()
-    return self._camera._camera
-end
-
-function Game:step_camera(dt)
-    self._camera:step(dt)
-end
-
-function Game:input_camera(dx, dy)
-    self._camera:input(dx, dy)
-end
-
-function Game:camera_get_look()
-    return self._camera:get_look()
 end
 
 function Game:new_object(fixtures, transform, color, static)
@@ -113,15 +95,15 @@ function Game:clear_objects(include_static)
     end
 end
 
-function Game:draw()
-    self._mat4:set(self._camera._camera:unpack()):inverse()
+function Game:draw(camera, camera_projection)
+    self._mat4:set(camera:unpack()):inverse()
 
     love.graphics.push("all")
-    love.graphics.setCanvas(self._buffer.Canvas)
+    love.graphics.setCanvas(self._buffer)
     love.graphics.clear(0, 0, 0, 0)
     love.graphics.setDepthMode("lequal", true)
     love.graphics.setShader(self.shaders.default)
-    self.shaders.default:send("projection", "row", self._camera._projection)
+    self.shaders.default:send("projection", "row", camera_projection)
     self.shaders.default:send("view", "row", self._mat4)
 
     for _, object in pairs(self._objects) do
@@ -176,8 +158,8 @@ function Game:draw()
     end
     love.graphics.pop()
     love.graphics.draw(
-        self._buffer.Canvas,
-        0, self._buffer.Canvas:getHeight(),
+        self._buffer[1],
+        0, self._buffer[1]:getHeight(),
         0, 1, -1
     )
 end
