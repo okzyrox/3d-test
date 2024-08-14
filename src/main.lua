@@ -9,6 +9,7 @@ local Game = require "content.Game"
 local Meshes = require "content.Meshes"
 local Camera = require "content.Camera"
 local Block = require "content.Block"
+local Chunk = require "content.Chunk"
 local Utils = require "content.utils"
 -------------------------------------------------------------------------------
 -- Start
@@ -24,11 +25,14 @@ local new_block
 
 function love.load()
     lang_lib.loadLanguage("en", Languages.english)
-    lang_lib.loadLanguage("fr", Languages.french)
     lang_lib.setLanguage("en")
     Utils.tableprint(lang_lib.getLocalizationData())
-    MainGame:add_block(
+    local chunk = Chunk("test", 0, 0, 0)
+    chunk:add_block(
         Block("test", 0, 0, 0, false)
+    )
+    MainGame:add_chunk(
+        chunk
     )
 end
 
@@ -36,7 +40,7 @@ local static_creation = false
 
 function love.draw(dt)
     MainGame:draw(CurrentCamera.camera, CurrentCamera.projection)
-
+    local camerax, cameray, cameraz = CurrentCamera.camera:get_position()
     love.graphics.print(
         (
             "FPS: %d \n" ..
@@ -47,6 +51,11 @@ function love.draw(dt)
             "Physics: %s \n" ..
             "Static Creation: %s \n" ..
             "Current Camera: %s \n" ..
+            "Camera pos: (%.2f" ..
+            ", %.2f" ..
+            ", %.2f)" ..
+            "\n" ..
+            "Chunks: %d \n" ..
             "Blocks: %d \n"  .. 
             "lang: %s"
         ):format(
@@ -58,7 +67,9 @@ function love.draw(dt)
             MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation),
             CurrentCamera.id,
-            #MainGame.blocks,
+            camerax, cameray, cameraz,
+            MainGame:get_chunk_count(),
+            MainGame:get_block_count(),
             lang_lib.getLanguage()
         ),
         5, 5
@@ -136,14 +147,10 @@ function love.keypressed(key)
             ),
             static_creation
         )
-
-        --bullet.body:set_static(false)
         bullet.body:set_velocity(
             lx * 20, ly * 20, lz * 20
         )
     elseif key == "b" then
-        local lx, ly, lz = CurrentCamera:get_look()
-
         local fall = math.random(0, 1) == 1
 
         local posx, posy, posz = math.random(-16, 16), 0, math.random(-16, 16)

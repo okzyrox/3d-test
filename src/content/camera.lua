@@ -1,5 +1,6 @@
 local fps = require "lib.fps"
 local lmath = require "lib.lmath"
+local Utils = require "content.utils"
 local Class = require "lib.classic"
 
 local Camera = Class:extend()

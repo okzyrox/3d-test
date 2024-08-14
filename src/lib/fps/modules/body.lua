@@ -59,6 +59,7 @@ function body.new()
 		world                  = nil,
 		sleeping               = false,
 		static                 = true,
+		collidable             = true,
 		responsive             = true,
 		colliding              = false,
 		mass                   = 0,
@@ -105,6 +106,13 @@ function body.set_velocity(body_,x,y,z)
 	local v=body_.velocity
 	
 	v[1],v[2],v[3]=x,y,z
+end
+
+function body.set_collidable(body_,collidable)
+	if collidable == nil then
+		collidable = true
+	end
+	body_.collidable = collidable
 end
 
 function body.set_angular_velocity(body_,x,y,z)
@@ -509,6 +517,10 @@ function body.resolve_collision(body_a,body_b,dt,solvers)
 		return
 	end
 	if not body_a.responsive or not body_b.responsive then
+		return
+	end
+
+	if body_a.collidable == false or body_b.collidable == false then
 		return
 	end
 	

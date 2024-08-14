@@ -5,82 +5,44 @@ local fps = require "lib.fps"
 local Meshes = require "content.Meshes"
 local Shaders = require "content.Shaders"
 
-local Block = Class:extend()
+local Chunk = Class:extend()
 
-function Block:new(id, x, y, z, falling)
-    if falling == nil then
-        falling = false
-    end
+function Chunk:new(id, x, y, z)
     self.id = id
     self.pos = lmath.vector3.new(x, y, z)
     self.transform = lmath.matrix4.new()
-    self.color = lmath.color3.new(1, 1, 1)
-    self.falling_block = falling
-
-    self._body = fps.body.new()
-    self._body:set_position(self.pos.x, self.pos.y, self.pos.z)
-
+    self.render_chunk_bounds = true
     self._fixtures = {}
-    self.textures = {
-        top = {},
-        side = {
-            front = {},
-            back = {},
-            left = {},
-            right = {}
-        },
-        bottom = {}
-    }
-
-    local block_fixtures = {
+    self._body = fps.body.new()
+    --self._body:set_collidable(true)
+    print("Chunk created: " .. self.id)
+    local chunk_fixtures = {
         {
             Meshes.cube,
-            lmath.vector3.new(3, 3, 3),
+            lmath.vector3.new(3 * 16, 3 * 64, 3 * 16),
             lmath.matrix4.new()
         }
     }
 
-    for _, fixture in pairs(block_fixtures) do
+    for _, fixture in pairs(chunk_fixtures) do
         local collider = fps.collider.new()
         collider:set_shape(fixture[1].shape)
         collider:set_size(fixture[2]:unpack())
         collider:set_transform(fixture[3]:unpack())
         self._body:add_collider(collider)
-
         self._fixtures[collider] = fixture[1]
     end
-    
-    self._mat4 = lmath.matrix4.new()
 
+    self.blocks = {}
+    self._mat4 = lmath.matrix4.new()
     return self
 end
 
-function Block:set_color(r, g, b)
-    self.color = lmath.color3.new(r, g, b)
+function Chunk:add_block(block)
+    self.blocks[#self.blocks + 1] = block
 end
 
-function Block:update(dt)
-    if self.falling_block == true then
-        self:fall(dt)
-
-        if self.pos.y < -10 then
-            self:set_position(self.pos.x, 20, self.pos.z)
-        end
-    end
-end
-
-function Block:set_position(x, y, z)
-    self.pos.x = x
-    self.pos.y = y
-    self.pos.z = z
-    self._body:set_position(x, y, z)
-end
-
-function Block:fall(dt)
-    self:set_position(self.pos.x, self.pos.y - 4 * dt, self.pos.z)
-end
-
-function Block:draw(render_bounding_box)
+function Chunk:draw(render_chunk_bounds, render_block_bounds)
     local body = self._body
     local boundary = body.boundary
 
@@ -95,10 +57,6 @@ function Block:draw(render_bounding_box)
             )
 
         Shaders.default:send("model", "row", self._mat4)
-
-        love.graphics.setColor(self.color.r, self.color.g, self.color.b, 1)
-
-        love.graphics.draw(self._fixtures[collider].drawable)
     end
 
     local middle_x = (boundary[1] + boundary[4]) / 2
@@ -113,13 +71,17 @@ function Block:draw(render_bounding_box)
             boundary[5] - boundary[2],
             boundary[6] - boundary[3]
         )
-    if render_bounding_box then
+    if render_chunk_bounds then
         love.graphics.setWireframe(true)
         love.graphics.setMeshCullMode("none")
         Shaders.default:send("model", "row", self._mat4)
         love.graphics.setColor(0, 1, 0, 1)
         love.graphics.draw(Meshes.cube.drawable)
     end
+
+    for _, block in pairs(self.blocks) do
+        block:draw(render_block_bounds)
+    end
 end
 
-return Block
+return Chunk

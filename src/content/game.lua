@@ -25,7 +25,8 @@ function Game:new()
     self._world:add_solver(fps.solvers.rigid)
     self._world:set_gravity(0, -50, 0)
     self._objects = {}
-    self.blocks = {}
+    self.chunks = {}
+    --self.blocks = {}
     self._mat4 = lmath.matrix4.new()
     return self
 end
@@ -43,8 +44,27 @@ function Game:add_block(block)
     self:add_body(block._body)
 end
 
+function Game:add_chunk(chunk)
+    self.chunks[#self.chunks + 1] = chunk
+    self:add_body(chunk._body)
+end
+
 function Game:get_object_count()
     return #self._objects
+end
+
+function Game:get_chunk_count()
+    return #self.chunks
+end
+
+function Game:get_block_count()
+    local count = 0
+    for _, chunk in ipairs(self.chunks) do
+        for _, block in ipairs(chunk.blocks) do
+            count = count + 1
+        end
+    end
+    return count
 end
 
 function Game:new_object(fixtures, transform, color, static)
@@ -154,7 +174,7 @@ function Game:draw(camera, camera_projection)
             love.graphics.draw(Meshes.cube.drawable)
         end
     end
-    for _, block in pairs(self.blocks) do
+    for _, chunk in pairs(self.chunks) do
         if self.render_wireframe then
             love.graphics.setWireframe(true)
             love.graphics.setMeshCullMode("none")
@@ -162,8 +182,9 @@ function Game:draw(camera, camera_projection)
             love.graphics.setWireframe(false)
             love.graphics.setMeshCullMode("front")
         end
-        block:draw(self.render_bounding_box)
+        chunk:draw(self.render_bounding_box, self.render_bounding_box)
     end
+
     love.graphics.pop()
     love.graphics.draw(
         self._buffer[1],
@@ -175,10 +196,6 @@ end
 function Game:update(dt)
     if not self.step_physics then
         self._world:step(math.min(dt, 1 / 60))
-    end
-
-    for _, block in pairs(self.blocks) do
-        block:update(dt)
     end
 end
 
