@@ -40,8 +40,7 @@ function Game:add_body(body)
 end
 
 function Game:add_block(block)
-    self.blocks[#self.blocks + 1] = block
-    self:add_body(block._body)
+    self.chunks[1]:add_block(block)
 end
 
 function Game:add_chunk(chunk)

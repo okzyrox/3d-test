@@ -7,14 +7,16 @@ local Shaders = require "content.Shaders"
 
 local Chunk = Class:extend()
 
-function Chunk:new(id, x, y, z)
+function Chunk:new(id, world, x, y, z)
     self.id = id
     self.pos = lmath.vector3.new(x, y, z)
     self.transform = lmath.matrix4.new()
     self.render_chunk_bounds = true
     self._fixtures = setmetatable({}, { __mode = "k" })
+
+    self._world = world
     self._body = fps.body.new()
-    --self._body:set_collidable(true)
+    self._body:set_collidable(false)
     print("Chunk created: " .. self.id)
     local chunk_fixtures = {
         {
@@ -40,6 +42,9 @@ end
 
 function Chunk:add_block(block)
     self.blocks[#self.blocks + 1] = block
+    if self._world ~= nil then
+        self._world:add_body(block._body)
+    end
 end
 
 function Chunk:draw(render_chunk_bounds, render_block_bounds)
@@ -58,19 +63,6 @@ function Chunk:draw(render_chunk_bounds, render_block_bounds)
 
         Shaders.default:send("model", "row", self._mat4)
     end
-
-    local middle_x = (boundary[1] + boundary[4]) / 2
-    local middle_y = (boundary[2] + boundary[5]) / 2
-    local middle_z = (boundary[3] + boundary[6]) / 2
-
-    self._mat4
-        :set()
-        :set_position(middle_x, middle_y, middle_z)
-        :scale(
-            boundary[4] - boundary[1],
-            boundary[5] - boundary[2],
-            boundary[6] - boundary[3]
-        )
     if render_chunk_bounds then
         love.graphics.setWireframe(true)
         love.graphics.setMeshCullMode("none")
@@ -81,6 +73,12 @@ function Chunk:draw(render_chunk_bounds, render_block_bounds)
 
     for _, block in pairs(self.blocks) do
         block:draw(render_block_bounds)
+    end
+end
+
+function Chunk:update()
+    for _, block in pairs(self.blocks) do
+        block:update()
     end
 end
 

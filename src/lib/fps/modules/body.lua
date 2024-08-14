@@ -519,10 +519,6 @@ function body.resolve_collision(body_a,body_b,dt,solvers)
 	if not body_a.responsive or not body_b.responsive then
 		return
 	end
-
-	if body_a.collidable == false or body_b.collidable == false then
-		return
-	end
 	
 	local aa,bb=body_a.boundary,body_b.boundary
 	
@@ -538,7 +534,13 @@ function body.resolve_collision(body_a,body_b,dt,solvers)
 	end
 	
 	for _,collider_a in ipairs(body_a.colliders) do
+		if body_a.collidable == false then
+			return
+		end
 		for _,collider_b in ipairs(body_b.colliders) do
+			if body_b.collidable == false then
+				return
+			end
 			if collider_a.touching[collider_b]==nil then
 				local cx,cy,cz,sx,sy,sz,sd=ngc(
 					collider_a,

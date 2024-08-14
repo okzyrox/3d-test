@@ -26,8 +26,8 @@ local new_block
 function love.load()
     lang_lib.loadLanguage("en", Languages.english)
     lang_lib.setLanguage("en")
-    Utils.tableprint(lang_lib.getLocalizationData())
-    local chunk = Chunk("test", 0, 0, 0)
+   -- Utils.tableprint(lang_lib.getLocalizationData())
+    local chunk = Chunk("chunk1", world, 0, 0, 0)
     chunk:add_block(
         Block("test", 0, 0, 0, false)
     )
