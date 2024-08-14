@@ -1,12 +1,15 @@
 local lmath = require "lib.lmath"
+local lang_lib = require "lib.language"
 local wavefront = require "lib.wavefront"
 local fps = require "lib.fps"
 -- Game
 
+local Languages = require "content.Languages"
 local Game = require "content.Game"
 local Meshes = require "content.Meshes"
 local Camera = require "content.Camera"
 local Block = require "content.Block"
+local Utils = require "content.utils"
 -------------------------------------------------------------------------------
 -- Start
 
@@ -20,6 +23,10 @@ local CurrentCamera = MainCamera
 local new_block
 
 function love.load()
+    lang_lib.loadLanguage("en", Languages.english)
+    lang_lib.loadLanguage("fr", Languages.french)
+    lang_lib.setLanguage("en")
+    Utils.tableprint(lang_lib.getLocalizationData())
     MainGame:add_block(
         Block("test", 0, 0, 0, false)
     )
@@ -38,9 +45,10 @@ function love.draw(dt)
             "Wireframe: %s \n" ..
             "Show Bounding Box: %s \n" ..
             "Physics: %s \n" ..
-            "StaticCreation: %s \n" ..
-            "CurrentCamera: %s \n" ..
-            "Blocks: %d"  
+            "Static Creation: %s \n" ..
+            "Current Camera: %s \n" ..
+            "Blocks: %d \n"  .. 
+            "lang: %s"
         ):format(
             love.timer.getFPS(),
             collectgarbage("count") / 1024,
@@ -50,7 +58,8 @@ function love.draw(dt)
             MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation),
             CurrentCamera.id,
-            #MainGame.blocks
+            #MainGame.blocks,
+            lang_lib.getLanguage()
         ),
         5, 5
     )
@@ -158,6 +167,8 @@ function love.keypressed(key)
         CurrentCamera = SecondCamera
     elseif key == "6" then
         CurrentCamera = MainCamera
+    elseif key == "j" then
+        lang_lib.setLanguage("en")
     elseif love.keyboard.isDown("lctrl") and key == "s" then
         MainGame:save()
     elseif love.keyboard.isDown("lctrl") and key == "l" then
