@@ -513,6 +513,7 @@ function body.raycast(body_,x,y,z,dx,dy,dz)
 end
 
 function body.resolve_collision(body_a,body_b,dt,solvers)
+	print("Resolving collision")
 	if body_a.static and body_b.static then
 		return
 	end
