@@ -7,7 +7,7 @@ local Shaders = require "content.Shaders"
 
 local Block = Class:extend()
 
-function Block:new(id, x, y, z, falling)
+function Block:new(id, world, x, y, z, falling)
     if falling == nil then
         falling = false
     end
@@ -17,7 +17,9 @@ function Block:new(id, x, y, z, falling)
     self.color = lmath.color3.new(1, 1, 1)
     self.falling_block = falling
 
+    self._world = world
     self._body = fps.body.new()
+    
     self._body:set_position(self.pos.x, self.pos.y, self.pos.z)
 
     self._fixtures = {}
@@ -25,7 +27,7 @@ function Block:new(id, x, y, z, falling)
     local block_fixtures = {
         {
             Meshes.cube,
-            lmath.vector3.new(2.5, 2.5, 2.5),
+            lmath.vector3.new(1, 1, 1),
             lmath.matrix4.new()
         }
     }
@@ -113,4 +115,20 @@ function Block:draw(x, y, z, render_bounding_box)
     end
 end
 
+function Block:destroy()
+    if self._body then
+        if self._world then
+            self._world:remove_body(self._body)
+        end
+        self._body = nil
+    end
+
+    for collider, _ in pairs(self._fixtures) do
+        collider = nil
+    end
+    self._fixtures = nil
+    self.transform = nil
+    self.color = nil
+    self.pos = nil
+end
 return Block

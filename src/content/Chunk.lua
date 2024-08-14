@@ -5,13 +5,12 @@ local fps = require "lib.fps"
 local Meshes = require "content.Meshes"
 local Shaders = require "content.Shaders"
 
-local Vec2 = require "content.Vector2"
-
 local Chunk = Class:extend()
 
 function Chunk:new(id, world, x, z)
+    print("Creating chunk: " .. id .. " at " .. x .. ", " .. z)
     self.id = id
-    self.pos = Vec2(x, z)
+    self.pos = lmath.vector2.new(x, z)
     -- Starts from (0, 0, 0)
     -- goes out by 1 per chunk (x and z)
     -- so the surrounding chunks would be:
@@ -29,15 +28,16 @@ function Chunk:new(id, world, x, z)
     self.render_chunk_bounds = true
     self._fixtures = setmetatable({}, { __mode = "k" })
 
-    self._world = world
     self._body = fps.body.new()
-    self._body:set_position(self.pos.x, 32, self.pos.z)
+    self._body:set_position(self.pos.x, 0, self.pos.y)
     self._body:set_collidable(false)
+    self._world = world
+    
     print("Chunk created: " .. self.id)
     local chunk_fixtures = {
         {
             Meshes.cube,
-            lmath.vector3.new(4.35 * 16, 3.5 * 64, 4.35 * 16),
+            lmath.vector3.new(1 * 16, 1 * 64, 1 * 16),
             lmath.matrix4.new()
         }
     }
@@ -57,16 +57,9 @@ function Chunk:new(id, world, x, z)
 end
 
 function Chunk:add_block(block)
+    block:set_position(block.pos.x + self.pos.x * 17 , block.pos.y, block.pos.z + self.pos.y * 17)
     self.blocks[#self.blocks + 1] = block
     if self._world ~= nil then
-        local blockLocalX = block.pos.x / 2.5 - (self.pos.x + 16)
-        local blockLocalY = block.pos.y / 2.5  - 32
-        local blockLocalZ = block.pos.z / 2.5 - (self.pos.z + 16)
-        blockLocalX = blockLocalX * 2.5
-        blockLocalY = blockLocalY * 2.5
-        blockLocalZ = blockLocalZ * 2.5
-
-        block:set_position(blockLocalX, blockLocalY, blockLocalZ)
         self._world:add_body(block._body)
     end
 end
@@ -96,13 +89,39 @@ function Chunk:draw(render_chunk_bounds, render_block_bounds)
     end
 
     for _, block in pairs(self.blocks) do
-        block:draw(render_block_bounds)
+        block:draw(block.pos.x + self.pos.x * 16, block.pos.y, block.pos.z + self.pos.y * 16, render_block_bounds)
     end
 end
 
 function Chunk:update()
     for _, block in pairs(self.blocks) do
         block:update()
+    end
+end
+
+function Chunk:destroy()
+    for _, block in pairs(self.blocks) do
+        block:destroy()
+    end
+    self.blocks = nil
+
+    if self._body then
+        if self._world then
+            self._world:remove_body(self._body)
+        end
+        self._body = nil
+    end
+
+    for collider, _ in pairs(self._fixtures) do
+        collider = nil
+    end
+    self._fixtures = nil
+
+    self.transform = nil
+    self.pos = nil
+    self._mat4 = nil
+    if self._world then
+        self._world = nil
     end
 end
 

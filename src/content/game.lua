@@ -2,6 +2,7 @@ local fps = require "lib.fps"
 local lmath = require "lib.lmath"
 local Class = require "lib.classic"
 local Json = require "lib.json"
+local utils= require "content.utils"
 
 local Meshes = require "content.Meshes"
 local Shaders = require "content.Shaders"
@@ -43,9 +44,15 @@ function Game:add_block(block)
     self.chunks[1]:add_block(block)
 end
 
-function Game:add_chunk(chunk)
-    self.chunks[#self.chunks + 1] = chunk
-    self:add_body(chunk._body)
+function Game:add_chunk(new_chunk)
+    for _, chunk in ipairs(self.chunks) do
+        if chunk.pos.x == new_chunk.pos.x and chunk.pos.y == new_chunk.pos.y then
+            print("Chunk already exists at " .. new_chunk.pos.x .. ", " .. new_chunk.pos.y)
+            return false
+        end
+    end
+    self.chunks[#self.chunks + 1] = new_chunk
+    self:add_body(new_chunk._body)
 end
 
 function Game:get_object_count()

@@ -23,11 +23,8 @@ local CurrentCamera = MainCamera
 
 local new_block
 
-function love.load()
-    lang_lib.loadLanguage("en", Languages.english)
-    lang_lib.setLanguage("en")
-   -- Utils.tableprint(lang_lib.getLocalizationData())
-    local chunk = Chunk("chunk1", world, 0, 0, 0)
+local function new_chunk()
+    local chunk = Chunk("chunk" .. tostring(math.random(0, 255)), world, math.random(-1, 1), math.random(-1, 1))
     --[[
     chunk:add_block(
         Block("test", 0, 0, 0, false)
@@ -40,17 +37,31 @@ function love.load()
             for k = 0, 16 do
                 --if i == 0 or i == 16 or j == 0 or j == 16 or k == 0 or k == 16 then
                 -- 2.5x is the amount needed for equal spacing
-                local block = Block("test", i * 2.5, j, k * 2.5, false)
-                block:set_color(math.random(0, 255) / 255, math.random(0, 255) / 255, math.random(0, 255) / 255)
+                local block = Block("test", world, i, j, k, false)
+                if i == 16 or k == 16 then
+                    block:set_color(1, 0, 0)
+                elseif i == 0 or k == 0 then
+                    block:set_color(1, 0, 0)
+                else
+                    block:set_color(math.random(0, 255) / 255, math.random(0, 255) / 255, math.random(0, 255) / 255)
+                end
                 chunk:add_block(
-                   block
+                    block
                 )
-               -- end
             end
         end
     end
+
+    return chunk
+end
+
+function love.load()
+    lang_lib.loadLanguage("en", Languages.english)
+    lang_lib.setLanguage("en")
+   -- Utils.tableprint(lang_lib.getLocalizationData())
+    
     MainGame:add_chunk(
-        chunk
+        new_chunk()
     )
 end
 
@@ -58,7 +69,7 @@ local static_creation = false
 
 function love.draw(dt)
     MainGame:draw(CurrentCamera.camera, CurrentCamera.projection)
-    --local camerax, cameray, cameraz = CurrentCamera.camera:get_position()
+    local cam_pos = CurrentCamera:get_position()
     love.graphics.print(
         (
             "FPS: %d \n" ..
@@ -69,6 +80,7 @@ function love.draw(dt)
             "Physics: %s \n" ..
             "Static Creation: %s \n" ..
             "Current Camera: %s \n" ..
+            "Camera pos: (%d, %d, %d) \n" ..
             "Chunks: %d \n" ..
             "Blocks: %d \n"  .. 
             "lang: %s"
@@ -81,6 +93,9 @@ function love.draw(dt)
             MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation),
             CurrentCamera.id,
+            cam_pos[1],
+            cam_pos[2],
+            cam_pos[3],
             MainGame:get_chunk_count(),
             MainGame:get_block_count(),
             lang_lib.getLanguage()
@@ -94,7 +109,6 @@ local pull_force  = 50
 
 function love.update(dt)
     CurrentCamera:step(dt)
-    print(CurrentCamera.camera:get_position())
 
     pull_origin
         :set(CurrentCamera.camera:unpack())
@@ -164,6 +178,12 @@ function love.keypressed(key)
         bullet.body:set_velocity(
             lx * 20, ly * 20, lz * 20
         )
+    elseif key == "c" then
+        local chunk = new_chunk()
+
+        if MainGame:add_chunk(chunk) == false then
+            chunk:destroy()
+        end
     elseif key == "b" then
         local fall = math.random(0, 1) == 1
 

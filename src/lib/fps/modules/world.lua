@@ -60,10 +60,10 @@ function world.add_body(world_,body_)
 end
 
 function world.remove_body(world_,body_)
-	assert(
-		body_.world==world_,
-		"Body does not exist in this world."
-	)
+	if body_.world~=world_ then
+		print("WARN - Body does not exist in this world.")
+		return
+	end
 	
 	body_.world=nil
 	

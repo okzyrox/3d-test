@@ -41,6 +41,11 @@ function Camera:get_look()
     return self.camera:get_look()
 end
 
+function Camera:get_position()
+    local posx, posy, posz = self.camera:get_position()
+    return {posx, posy, posz}
+end
+
 function Camera:step(dt)
     self.move_dir:set()
     for key, vector in pairs(self.keymap) do
