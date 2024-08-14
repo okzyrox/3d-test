@@ -66,7 +66,7 @@ function Block:fall(dt)
     self:set_position(self.pos.x, self.pos.y - 4 * dt, self.pos.z)
 end
 
-function Block:draw()
+function Block:draw(render_bounding_box)
     local body = self._body
     local boundary = body.boundary
 
@@ -99,6 +99,13 @@ function Block:draw()
             boundary[5] - boundary[2],
             boundary[6] - boundary[3]
         )
+    if render_bounding_box then
+        love.graphics.setWireframe(true)
+        love.graphics.setMeshCullMode("none")
+        Shaders.default:send("model", "row", self._mat4)
+        love.graphics.setColor(0, 1, 0, 1)
+        love.graphics.draw(Meshes.cube.drawable)
+    end
 end
 
 return Block

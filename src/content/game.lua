@@ -162,14 +162,7 @@ function Game:draw(camera, camera_projection)
             love.graphics.setWireframe(false)
             love.graphics.setMeshCullMode("front")
         end
-        block:draw()
-        if self.render_bounding_box then
-            love.graphics.setWireframe(true)
-            love.graphics.setMeshCullMode("none")
-            Shaders.default:send("model", "row", self._mat4)
-            love.graphics.setColor(0, 1, 0, 1)
-            love.graphics.draw(Meshes.cube.drawable)
-        end
+        block:draw(self.render_bounding_box)
     end
     love.graphics.pop()
     love.graphics.draw(
