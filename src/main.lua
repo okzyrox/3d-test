@@ -29,7 +29,6 @@ function love.load()
     Utils.tableprint(lang_lib.getLocalizationData())
     local chunk = Chunk("test", 0, 0, 0)
     chunk:add_block(
-        MainGame._world,
         Block("test", 0, 0, 0, false)
     )
     MainGame:add_chunk(

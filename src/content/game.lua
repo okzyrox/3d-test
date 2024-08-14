@@ -46,6 +46,7 @@ end
 
 function Game:add_chunk(chunk)
     self.chunks[#self.chunks + 1] = chunk
+    self:add_body(chunk._body)
 end
 
 function Game:get_object_count()

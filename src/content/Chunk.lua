@@ -13,32 +13,42 @@ function Chunk:new(id, x, y, z)
     self.transform = lmath.matrix4.new()
     self.render_chunk_bounds = true
     self._fixtures = {}
+    self._body = fps.body.new()
     --self._body:set_collidable(true)
     print("Chunk created: " .. self.id)
+    local chunk_fixtures = {
+        {
+            Meshes.cube,
+            lmath.vector3.new(3 * 16, 3 * 64, 3 * 16),
+            lmath.matrix4.new()
+        }
+    }
+
+    for _, fixture in pairs(chunk_fixtures) do
+        local collider = fps.collider.new()
+        collider:set_shape(fixture[1].shape)
+        collider:set_size(fixture[2]:unpack())
+        collider:set_transform(fixture[3]:unpack())
+        self._body:add_collider(collider)
+        self._fixtures[collider] = fixture[1]
+    end
 
     self.blocks = {}
     self._mat4 = lmath.matrix4.new()
     return self
 end
 
-function Chunk:add_block(world, block)
+function Chunk:add_block(block)
     self.blocks[#self.blocks + 1] = block
-    world:add_body(block._body)
 end
 
 function Chunk:draw(render_chunk_bounds, render_block_bounds)
-    local colliders = {}
-    local collider = fps.collider.new()
-    collider:set_shape(Meshes.cube.shape)
-    collider:set_size(lmath.vector3.new(3 * 16, 3 * 64, 3 * 16):unpack())
-    collider:set_transform(lmath.matrix4.new():unpack())
-    self._fixtures[collider] = Meshes.cube
+    local body = self._body
+    local boundary = body.boundary
 
-    table.insert(colliders, collider)
-
-    for _, collider in ipairs(colliders) do
+    for _, collider in ipairs(body.colliders) do
         self._mat4
-            :set(unpack(self.transform))
+            :set(unpack(body.transform))
             :multiply(collider.transform)
             :scale(
                 collider.size[1],
@@ -48,7 +58,7 @@ function Chunk:draw(render_chunk_bounds, render_block_bounds)
 
         Shaders.default:send("model", "row", self._mat4)
     end
-    --[[
+
     local middle_x = (boundary[1] + boundary[4]) / 2
     local middle_y = (boundary[2] + boundary[5]) / 2
     local middle_z = (boundary[3] + boundary[6]) / 2
@@ -60,7 +70,7 @@ function Chunk:draw(render_chunk_bounds, render_block_bounds)
             boundary[4] - boundary[1],
             boundary[5] - boundary[2],
             boundary[6] - boundary[3]
-        )]]
+        )
     if render_chunk_bounds then
         love.graphics.setWireframe(true)
         love.graphics.setMeshCullMode("none")
