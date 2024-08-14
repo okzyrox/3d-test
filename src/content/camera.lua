@@ -4,8 +4,17 @@ local Class = require "lib.classic"
 
 local Camera = Class:extend()
 
-function Camera:new(id)
-    local cam = lmath.matrix4.new()
+function Camera:new(id, posx, posy, posz)
+    if posx == nil then
+        posx = 0
+    end
+    if posy == nil then
+        posy = 0
+    end
+    if posz == nil then
+        posz = 0
+    end
+    local cam = lmath.matrix4.new():set_position(posx, posy, posz)
     self.id = id
     self.camera = cam
     self.keymap = {

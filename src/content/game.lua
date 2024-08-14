@@ -4,16 +4,11 @@ local Class = require "lib.classic"
 local Json = require "lib.json"
 
 local Meshes = require "content.Meshes"
+local Shaders = require "content.Shaders"
 
 local Game = Class:extend()
 
 function Game:new()
-    self.shaders = {
-        default = love.graphics.newShader(
-            "assets/shaders/simple_vertex.glsl",
-            "assets/shaders/simple_pixel.glsl"
-        )
-    }
     self.render_wireframe = false
     self.render_bounding_box = false
     self.step_physics = false
@@ -30,6 +25,7 @@ function Game:new()
     self._world:add_solver(fps.solvers.rigid)
     self._world:set_gravity(0, -50, 0)
     self._objects = {}
+    self.blocks = {}
     self._mat4 = lmath.matrix4.new()
     return self
 end
@@ -42,8 +38,9 @@ function Game:add_body(body)
     self._world:add_body(body)
 end
 
-function Game:add_shader(id, shader)
-    self.shaders[id] = shader
+function Game:add_block(block)
+    self.blocks[#self.blocks + 1] = block
+    self:add_body(block._body)
 end
 
 function Game:get_object_count()
@@ -103,9 +100,9 @@ function Game:draw(camera, camera_projection)
     love.graphics.setCanvas(self._buffer)
     love.graphics.clear(0, 0, 0, 0)
     love.graphics.setDepthMode("lequal", true)
-    love.graphics.setShader(self.shaders.default)
-    self.shaders.default:send("projection", "row", camera_projection)
-    self.shaders.default:send("view", "row", self._mat4)
+    love.graphics.setShader(Shaders.default)
+    Shaders.default:send("projection", "row", camera_projection)
+    Shaders.default:send("view", "row", self._mat4)
 
     for _, object in pairs(self._objects) do
         if self.render_wireframe then
@@ -129,7 +126,7 @@ function Game:draw(camera, camera_projection)
                     collider.size[3]
                 )
 
-            self.shaders.default:send("model", "row", self._mat4)
+            Shaders.default:send("model", "row", self._mat4)
 
             love.graphics.setColor(object.color.r, object.color.g, object.color.b, 1)
 
@@ -152,7 +149,24 @@ function Game:draw(camera, camera_projection)
         if self.render_bounding_box then
             love.graphics.setWireframe(true)
             love.graphics.setMeshCullMode("none")
-            self.shaders.default:send("model", "row", self._mat4)
+            Shaders.default:send("model", "row", self._mat4)
+            love.graphics.setColor(0, 1, 0, 1)
+            love.graphics.draw(Meshes.cube.drawable)
+        end
+    end
+    for _, block in pairs(self.blocks) do
+        if self.render_wireframe then
+            love.graphics.setWireframe(true)
+            love.graphics.setMeshCullMode("none")
+        else
+            love.graphics.setWireframe(false)
+            love.graphics.setMeshCullMode("front")
+        end
+        block:draw()
+        if self.render_bounding_box then
+            love.graphics.setWireframe(true)
+            love.graphics.setMeshCullMode("none")
+            Shaders.default:send("model", "row", self._mat4)
             love.graphics.setColor(0, 1, 0, 1)
             love.graphics.draw(Meshes.cube.drawable)
         end
@@ -163,6 +177,16 @@ function Game:draw(camera, camera_projection)
         0, self._buffer[1]:getHeight(),
         0, 1, -1
     )
+end
+
+function Game:update(dt)
+    if not self.step_physics then
+        self._world:step(math.min(dt, 1 / 60))
+    end
+
+    for _, block in pairs(self.blocks) do
+        block:update(dt)
+    end
 end
 
 function Game:load()

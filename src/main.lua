@@ -6,75 +6,22 @@ local fps = require "lib.fps"
 local Game = require "content.Game"
 local Meshes = require "content.Meshes"
 local Camera = require "content.Camera"
+local Block = require "content.Block"
 -------------------------------------------------------------------------------
 -- Start
 
 local MainGame = Game:new()
 local world = MainGame:get_world()
-local MainCamera = Camera("first_cam")
-local SecondCamera = Camera("second_cam")
+local MainCamera = Camera("first_cam", 0, 5, 0)
+local SecondCamera = Camera("second_cam", 0, 5, 0)
 
 local CurrentCamera = MainCamera
 
+local new_block
+
 function love.load()
-    MainGame:new_object(
-        {
-            {
-                Meshes.cube,
-                lmath.vector3.new(30, 1, 30),
-                lmath.matrix4.new()
-            }
-        },
-        lmath.matrix4.new(),
-        lmath.color3.new(1, 1, 1)
-    )
-
-    MainGame:new_object(
-        {
-            {
-                Meshes.cube,
-                lmath.vector3.new(30, 10, 1),
-                lmath.matrix4.new()
-            }
-        },
-        lmath.matrix4.new():set_position(0, 5, -15),
-        lmath.color3.new(1, 1, 1)
-    )
-
-    MainGame:new_object(
-        {
-            {
-                Meshes.cube,
-                lmath.vector3.new(30, 10, 1),
-                lmath.matrix4.new()
-            }
-        },
-        lmath.matrix4.new():set_position(0, 5, 15),
-        lmath.color3.new(1, 1, 1)
-    )
-
-    MainGame:new_object(
-        {
-            {
-                Meshes.cube,
-                lmath.vector3.new(1, 10, 30),
-                lmath.matrix4.new()
-            }
-        },
-        lmath.matrix4.new():set_position(-15, 5, 0),
-        lmath.color3.new(1, 1, 1)
-    )
-
-    MainGame:new_object(
-        {
-            {
-                Meshes.cube,
-                lmath.vector3.new(1, 10, 30),
-                lmath.matrix4.new()
-            }
-        },
-        lmath.matrix4.new():set_position(15, 5, 0),
-        lmath.color3.new(1, 1, 1)
+    MainGame:add_block(
+        Block("test", 0, 0, 0, false)
     )
 end
 
@@ -91,8 +38,9 @@ function love.draw(dt)
             "Wireframe: %s \n" ..
             "Show Bounding Box: %s \n" ..
             "Physics: %s \n" ..
-            "StaticCreation: %s \n " ..
-            "CurrentCamera: %s"
+            "StaticCreation: %s \n" ..
+            "CurrentCamera: %s \n" ..
+            "Blocks: %d"  
         ):format(
             love.timer.getFPS(),
             collectgarbage("count") / 1024,
@@ -101,7 +49,8 @@ function love.draw(dt)
             tostring(MainGame.render_bounding_box),
             MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation),
-            CurrentCamera.id
+            CurrentCamera.id,
+            #MainGame.blocks
         ),
         5, 5
     )
@@ -145,9 +94,8 @@ function love.update(dt)
         end
     end
 
-    if not MainGame.step_physics then
-        world:step(math.min(dt, 1 / 60))
-    end
+    MainGame:update(dt)
+    
 end
 
 function love.mousemoved(x, y, dx, dy)
@@ -184,6 +132,14 @@ function love.keypressed(key)
         bullet.body:set_velocity(
             lx * 20, ly * 20, lz * 20
         )
+    elseif key == "b" then
+        local lx, ly, lz = CurrentCamera:get_look()
+
+        local fall = math.random(0, 1) == 1
+
+        local posx, posy, posz = math.random(-16, 16), 0, math.random(-16, 16)
+
+        MainGame:add_block(Block("a", posx, posy, posz, fall))
     elseif key == "1" then
         MainGame.render_wireframe = not MainGame.render_wireframe
     elseif key == "2" then
