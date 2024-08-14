@@ -5,23 +5,39 @@ local fps = require "lib.fps"
 local Meshes = require "content.Meshes"
 local Shaders = require "content.Shaders"
 
+local Vec2 = require "content.Vector2"
+
 local Chunk = Class:extend()
 
-function Chunk:new(id, world, x, y, z)
+function Chunk:new(id, world, x, z)
     self.id = id
-    self.pos = lmath.vector3.new(x, y, z)
+    self.pos = Vec2(x, z)
+    -- Starts from (0, 0, 0)
+    -- goes out by 1 per chunk (x and z)
+    -- so the surrounding chunks would be:
+    --[[
+    (1, 0, 0)
+    (0, 0, 1)
+    (1, 0, 1)
+    (-1, 0, 0)
+    (-1, 0, 1)
+    (0, 0, -1)
+    (1, 0, -1)
+    (-1, 0, -1)
+    ]]
     self.transform = lmath.matrix4.new()
     self.render_chunk_bounds = true
     self._fixtures = setmetatable({}, { __mode = "k" })
 
     self._world = world
     self._body = fps.body.new()
+    self._body:set_position(self.pos.x, 32, self.pos.z)
     self._body:set_collidable(false)
     print("Chunk created: " .. self.id)
     local chunk_fixtures = {
         {
             Meshes.cube,
-            lmath.vector3.new(3 * 16, 3 * 64, 3 * 16),
+            lmath.vector3.new(4.35 * 16, 3.5 * 64, 4.35 * 16),
             lmath.matrix4.new()
         }
     }
@@ -43,6 +59,14 @@ end
 function Chunk:add_block(block)
     self.blocks[#self.blocks + 1] = block
     if self._world ~= nil then
+        local blockLocalX = block.pos.x / 2.5 - (self.pos.x + 16)
+        local blockLocalY = block.pos.y / 2.5  - 32
+        local blockLocalZ = block.pos.z / 2.5 - (self.pos.z + 16)
+        blockLocalX = blockLocalX * 2.5
+        blockLocalY = blockLocalY * 2.5
+        blockLocalZ = blockLocalZ * 2.5
+
+        block:set_position(blockLocalX, blockLocalY, blockLocalZ)
         self._world:add_body(block._body)
     end
 end

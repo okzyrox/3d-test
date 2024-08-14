@@ -12,7 +12,7 @@ function Block:new(id, x, y, z, falling)
         falling = false
     end
     self.id = id
-    self.pos = lmath.vector3.new(x, y, z)
+    self.pos = lmath.vector3.new(x, y, z) -- Relative chunk coordinates
     self.transform = lmath.matrix4.new()
     self.color = lmath.color3.new(1, 1, 1)
     self.falling_block = falling
@@ -25,7 +25,7 @@ function Block:new(id, x, y, z, falling)
     local block_fixtures = {
         {
             Meshes.cube,
-            lmath.vector3.new(3, 3, 3),
+            lmath.vector3.new(2.5, 2.5, 2.5),
             lmath.matrix4.new()
         }
     }
@@ -70,7 +70,7 @@ function Block:fall(dt)
     self:set_position(self.pos.x, self.pos.y - 4 * dt, self.pos.z)
 end
 
-function Block:draw(render_bounding_box)
+function Block:draw(x, y, z, render_bounding_box)
     local body = self._body
     local boundary = body.boundary
 
@@ -107,7 +107,8 @@ function Block:draw(render_bounding_box)
         love.graphics.setWireframe(true)
         love.graphics.setMeshCullMode("none")
         Shaders.default:send("model", "row", self._mat4)
-        love.graphics.setColor(0, 1, 0, 1)
+        love.graphics.setColor(self.color.r, self.color.g, self.color.b, 1)
+        --love.graphics.setColor(0, 1, 0, 1)
         love.graphics.draw(Meshes.cube.drawable)
     end
 end

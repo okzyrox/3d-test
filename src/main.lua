@@ -28,9 +28,27 @@ function love.load()
     lang_lib.setLanguage("en")
    -- Utils.tableprint(lang_lib.getLocalizationData())
     local chunk = Chunk("chunk1", world, 0, 0, 0)
+    --[[
     chunk:add_block(
         Block("test", 0, 0, 0, false)
     )
+    chunk:add_block(
+        Block("test2", 16, 0, 16, false)
+    )]]
+    for i = 0, 16 do
+        for j = 0, 0 do
+            for k = 0, 16 do
+                --if i == 0 or i == 16 or j == 0 or j == 16 or k == 0 or k == 16 then
+                -- 2.5x is the amount needed for equal spacing
+                local block = Block("test", i * 2.5, j, k * 2.5, false)
+                block:set_color(math.random(0, 255) / 255, math.random(0, 255) / 255, math.random(0, 255) / 255)
+                chunk:add_block(
+                   block
+                )
+               -- end
+            end
+        end
+    end
     MainGame:add_chunk(
         chunk
     )
@@ -76,6 +94,7 @@ local pull_force  = 50
 
 function love.update(dt)
     CurrentCamera:step(dt)
+    print(CurrentCamera.camera:get_position())
 
     pull_origin
         :set(CurrentCamera.camera:unpack())
