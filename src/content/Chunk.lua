@@ -12,7 +12,7 @@ function Chunk:new(id, x, y, z)
     self.pos = lmath.vector3.new(x, y, z)
     self.transform = lmath.matrix4.new()
     self.render_chunk_bounds = true
-    self._fixtures = {}
+    self._fixtures = setmetatable({}, { __mode = "k" })
     self._body = fps.body.new()
     --self._body:set_collidable(true)
     print("Chunk created: " .. self.id)

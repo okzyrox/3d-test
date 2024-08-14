@@ -21,16 +21,6 @@ function Block:new(id, x, y, z, falling)
     self._body:set_position(self.pos.x, self.pos.y, self.pos.z)
 
     self._fixtures = {}
-    self.textures = {
-        top = {},
-        side = {
-            front = {},
-            back = {},
-            left = {},
-            right = {}
-        },
-        bottom = {}
-    }
 
     local block_fixtures = {
         {

@@ -40,7 +40,7 @@ local static_creation = false
 
 function love.draw(dt)
     MainGame:draw(CurrentCamera.camera, CurrentCamera.projection)
-    local camerax, cameray, cameraz = CurrentCamera.camera:get_position()
+    --local camerax, cameray, cameraz = CurrentCamera.camera:get_position()
     love.graphics.print(
         (
             "FPS: %d \n" ..
@@ -51,10 +51,6 @@ function love.draw(dt)
             "Physics: %s \n" ..
             "Static Creation: %s \n" ..
             "Current Camera: %s \n" ..
-            "Camera pos: (%.2f" ..
-            ", %.2f" ..
-            ", %.2f)" ..
-            "\n" ..
             "Chunks: %d \n" ..
             "Blocks: %d \n"  .. 
             "lang: %s"
@@ -67,7 +63,6 @@ function love.draw(dt)
             MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation),
             CurrentCamera.id,
-            camerax, cameray, cameraz,
             MainGame:get_chunk_count(),
             MainGame:get_block_count(),
             lang_lib.getLanguage()
