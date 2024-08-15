@@ -72,18 +72,24 @@ function love.draw(dt)
     local cam_pos = CurrentCamera:get_position()
     love.graphics.print(
         (
+            "--- Performance ---\n" ..
             "FPS: %d \n" ..
             "Mem: %0.2f mb \n" ..
             "Bodies: %d \n" ..
             "Wireframe: %s \n" ..
             "Show Bounding Box: %s \n" ..
+            "-- Physics -- \n" ..
             "Physics: %s \n" ..
             "Static Creation: %s \n" ..
+            "--- Camera --- \n" ..
             "Current Camera: %s \n" ..
+            "Camera shift-locked: %s \n" ..
             "Camera pos: (%d, %d, %d) \n" ..
+            "--- World --- \n" ..
             "Chunks: %d \n" ..
             "Blocks: %d \n"  .. 
-            "lang: %s"
+            "--- Misc --- \n" ..
+            "Current Language: %s"
         ):format(
             love.timer.getFPS(),
             collectgarbage("count") / 1024,
@@ -93,6 +99,7 @@ function love.draw(dt)
             MainGame.step_physics and "Step" or "Realtime",
             tostring(static_creation),
             CurrentCamera.id,
+            tostring(CurrentCamera.mouse_locked),
             cam_pos[1],
             cam_pos[2],
             cam_pos[3],
@@ -214,6 +221,8 @@ function love.keypressed(key)
         MainGame:save()
     elseif love.keyboard.isDown("lctrl") and key == "l" then
         MainGame:load()
+    elseif key == "lshift" or key == "rshift" then
+        CurrentCamera:set_mouse_locked(not CurrentCamera.mouse_locked)
     end
 end
 

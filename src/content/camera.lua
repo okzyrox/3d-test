@@ -28,6 +28,7 @@ function Camera:new(id, posx, posy, posz)
     }
     self.view = lmath.matrix4.new():set(cam:unpack())
     self.move_dir = lmath.vector3.new()
+    self.mouse_locked = false
     self.look_angle = lmath.vector2.new()
     self.projection = lmath.matrix4.new():set_perspective(
         75,
@@ -46,6 +47,17 @@ function Camera:get_position()
     return {posx, posy, posz}
 end
 
+function Camera:set_mouse_locked(state)
+    self.mouse_locked = state
+    if state then
+        love.mouse.setGrabbed(true)
+        love.mouse.setRelativeMode(true)
+    else
+        love.mouse.setGrabbed(false)
+        love.mouse.setRelativeMode(false)
+    end
+end
+
 function Camera:step(dt)
     self.move_dir:set()
     for key, vector in pairs(self.keymap) do
@@ -61,7 +73,7 @@ function Camera:step(dt)
 end
 
 function Camera:input(dx, dy)
-    if love.mouse.isDown(1, 2) then
+    if self.mouse_locked then
         self.look_angle.x = lmath.clamp(
             self.look_angle.x - math.rad(dy * 0.4),
             math.rad(-89), math.rad(89)
@@ -69,6 +81,16 @@ function Camera:input(dx, dy)
         self.look_angle.y = self.look_angle.y - math.rad(dx * 0.4)
         self.view:set_euler(0, self.look_angle.y, 0)
             :rotate_euler(self.look_angle.x, 0, 0)
+    else
+        if love.mouse.isDown(1, 2) then
+            self.look_angle.x = lmath.clamp(
+                self.look_angle.x - math.rad(dy * 0.4),
+                math.rad(-89), math.rad(89)
+            )
+            self.look_angle.y = self.look_angle.y - math.rad(dx * 0.4)
+            self.view:set_euler(0, self.look_angle.y, 0)
+                :rotate_euler(self.look_angle.x, 0, 0)
+        end
     end
 end
 
