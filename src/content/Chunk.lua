@@ -64,7 +64,16 @@ function Chunk:add_block(block)
     end
 end
 
-function Chunk:draw(render_chunk_bounds, render_block_bounds)
+function Chunk:find_block_at(x, y, z)
+    for _, block in ipairs(self.blocks) do
+        if block.pos.x == x and block.pos.y == y and block.pos.z == z then
+            return block
+        end
+    end
+    return nil
+end
+
+function Chunk:draw(camera_look_vec, render_chunk_bounds, render_block_bounds)
     local body = self._body
     local boundary = body.boundary
 
@@ -89,7 +98,7 @@ function Chunk:draw(render_chunk_bounds, render_block_bounds)
     end
 
     for _, block in pairs(self.blocks) do
-        block:draw(block.pos.x + self.pos.x * 16, block.pos.y, block.pos.z + self.pos.y * 16, render_block_bounds)
+        block:draw(camera_look_vec, self, block.pos.x + self.pos.x * 16, block.pos.y, block.pos.z + self.pos.y * 16, render_block_bounds)
     end
 end
 

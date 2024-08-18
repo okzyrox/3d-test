@@ -224,6 +224,10 @@ function love.keypressed(key)
     elseif key == "lshift" or key == "rshift" then
         CurrentCamera:set_mouse_locked(not CurrentCamera.mouse_locked)
     end
+
+    if key == "escape" then
+        love.event.quit()
+    end
 end
 
 collectgarbage()

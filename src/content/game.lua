@@ -188,7 +188,13 @@ function Game:draw(camera, camera_projection)
             love.graphics.setWireframe(false)
             love.graphics.setMeshCullMode("front")
         end
-        chunk:draw(self.render_bounding_box, self.render_bounding_box)
+        local lookx, looky, lookz = camera_projection:get_look()
+        local look = {
+            x = lookx,
+            y = looky,
+            z = lookz
+        }
+        chunk:draw(look, self.render_bounding_box, self.render_bounding_box)
     end
 
     love.graphics.pop()
